@@ -1,0 +1,3 @@
+## Design Reference
+UI designed in [Figma] (https://www.figma.com/make/grKsURnvvmmdtxy4mdPKjQ/Draft-App-Flow-for-KneeMS?t=XiiFx426UTxnpBPD-1)
+Flutter implementation only; React code snippets from Figma are for reference.
