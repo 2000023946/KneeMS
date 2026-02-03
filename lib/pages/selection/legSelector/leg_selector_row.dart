@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'legSelectorCard.dart';
-import 'package:mobile/pages/selection/section_title.dart';
+import 'legSelectorCard/legSelectorCard.dart';
+import 'package:mobile/pages/selection/components/section_title.dart';
 
 class LegSelectorRow extends StatelessWidget {
   final String selectedLeg; // "L", "R", or ''
