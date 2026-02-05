@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../models/exercise_session.dart';
+import '../domain/states/exercise_session.dart';
 
 class HistoryProvider extends ChangeNotifier {
   // 1. Initialize an empty list of sessions

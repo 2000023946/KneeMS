@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mobile/logic/active_session_provider.dart';
 import 'package:mobile/logic/history_provider.dart';
-import 'package:mobile/models/exercise_session.dart';
+import 'package:mobile/domain/states/exercise_session.dart';
 import 'package:mobile/pages/homes/home.dart';
 import 'package:mobile/utils/action_buttons.dart';
 import 'package:mobile/utils/app_navigator.dart';

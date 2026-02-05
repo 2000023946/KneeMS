@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:mobile/models/exercise_session.dart';
+import 'package:mobile/domain/states/exercise_session.dart';
 import 'exercise_row/exercise_row.dart';
 
 class RecentSessionsList extends StatelessWidget {
