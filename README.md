@@ -99,3 +99,28 @@ class FullInitialSelectionState {
     );
   }
 }
+
+flowchart TD
+    %% States (Nodes)
+    S0[StartingState]
+    S1[LegSelectedState]
+    S2[DeviceConnectedState]
+    S3[ExerciseActiveState]
+    S4[RoundCompletedState]
+
+    %% Certificates (Capabilities)
+    C1{{LegSelectionCertificate}}
+    C2{{DeviceConnectionCertificate}}
+    C3{{ExerciseStartCertificate}}
+    C4{{RoundCompletionCertificate}}
+
+    %% Inter-State Transitions (Edges via Certificates)
+    S0 -->|Proof: LegSelected| C1 --> S1
+    S1 -->|Proof: DeviceConnected| C2 --> S2
+    S2 -->|Proof: ExerciseStarted| C3 --> S3
+    S3 -->|Proof: RoundCompleted| C4 --> S4
+
+    %% Self-Loops (Instance Methods)
+    S3 -->|addRep() Proof| S3
+    S3 -->|updateTimer() Proof| S3
+    S4 -->|adjustMetadata() Proof| S4
