@@ -78,3 +78,115 @@ flowchart TD
     F --> G[Confirmation / Motivation]
     G --> B
     E -->|Redo| D
+# Secure Domain State Machine (FSM)
+
+This module implements a **Type-Safe Finite State Machine (FSM)** for a Flutter/Dart domain.  
+It uses **Witness / Proof patterns** and **Capabilities-based security** to ensure that **only valid state transitions are representable at compile time**.
+
+The goal is to make *illegal states unrepresentable*, not just unlikely.
+
+---
+
+## 🛡️ Design Overview
+
+This FSM models the domain as a **directed graph**:
+
+- **States are Nodes**
+- **Transitions are Edges**
+- **Proofs act as witnesses that a transition occurred legally**
+- **Certificates act as capabilities required to construct the next state**
+
+This prevents:
+- Skipped states
+- Partial construction
+- Invalid persistence
+- “Teleportation” between unrelated states
+
+---
+
+## 🏗️ Core Architecture
+
+The system is built on three core concepts:
+
+| Component | Role | Description |
+|--------|------|------------|
+| **States (Nodes)** | The *Where* | Immutable, fully valid snapshots of domain data |
+| **Proofs (Edges)** | The *How* | Witness objects proving a legal transition occurred |
+| **Certificates** | The *Key* | Capabilities issued by managers to authorize transitions |
+
+---
+
+## 🚀 Graph Logic
+
+### 1. States (Nodes)
+
+Each state represents a **100% valid domain configuration**.
+
+- State constructors are **private**
+- A state **cannot be instantiated directly**
+- All states must be assembled through domain logic
+
+This guarantees that *every state object is valid by construction*.
+
+---
+
+### 2. Transitions (Edges / Proofs)
+
+Transitions are represented as **Proof objects**.
+
+There are two types:
+
+#### Static Transitions
+Move from one state to another (e.g. `StartingState → LegSelectionState`).
+
+- Require the source state
+- Require a valid Certificate
+- Produce a Proof containing the new state
+
+#### Self-Loops
+Update data while remaining in the same state.
+
+- Implemented as instance methods
+- Still return Proofs to preserve auditability
+
+---
+
+### 3. Certificates (The Gatekeeper)
+
+Certificates prevent invalid transitions.
+
+- Issued only by trusted Managers
+- Prove that the caller is currently in the correct state
+- Required to unlock the next state constructor
+
+This prevents **“teleportation bugs”** — jumping directly from Node A to Node D without walking the graph.
+
+---
+
+## 🛠️ Implementation Example
+
+```dart
+// A State (Node)
+class FullInitialSelectionState {
+  FullInitialSelectionState._({
+    required this.selectedLeg,
+    required this.connectedDevice,
+  });
+
+  final LegChoice selectedLeg;
+  final BLEDeviceAddress connectedDevice;
+
+  // A Transition (Edge)
+  static FullInitialStateCreatedProof fromComponents(
+    LegChoice leg,
+    BLEDeviceAddress address,
+    InitialStateCertificate cert,
+  ) {
+    return FullInitialStateCreatedProof(
+      FullInitialSelectionState._(
+        selectedLeg: leg,
+        connectedDevice: address,
+      ),
+    );
+  }
+}
