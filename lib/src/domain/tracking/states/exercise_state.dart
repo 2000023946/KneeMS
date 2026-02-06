@@ -15,15 +15,18 @@ class ExerciseInProgressState {
   final DateTime startTime;
   final RepCount reps;
 
-  // 1. PRIVATE CONSTRUCTOR: Forbidden for general use.
+  // 🟢 The new attribute: True if the hardware policy (4s hold) is satisfied
+  final bool isRepStaged;
+
   ExerciseInProgressState._({
     required this.legChoice,
     required this.deviceAddress,
     required this.startTime,
     required this.reps,
+    this.isRepStaged = false, // Default to false
   });
 
-  /// 2. AUTHORIZED FACTORY: The only way to 'Birth' the session.
+  /// 2. AUTHORIZED FACTORY: Initial birth of the session.
   static ExerciseStartedProof create(
     LegChoice leg,
     BLEDeviceAddress device,
@@ -38,12 +41,77 @@ class ExerciseInProgressState {
     return ExerciseStartedProof(state);
   }
 
-  /// 3. AUTHORIZED REHYDRATION: For the Persistence Adapter.
+  // --- TRANSITIONS (The Logic Gate) ---
+
+  /// STAGE: The hardware policy emits a RepConfirmedProof.
+  /// We flip the flag to TRUE but do NOT increment the count yet.
+  ExerciseStartedProof stageRep(RepConfirmedProof proof) {
+    final stagedState = ExerciseInProgressState._(
+      legChoice: legChoice,
+      deviceAddress: deviceAddress,
+      startTime: startTime,
+      reps: reps,
+      isRepStaged: true, // 🟢 Set staging to true
+    );
+    return ExerciseStartedProof(stagedState);
+  }
+
+  ExerciseStartedProof redoRep() {
+    // We only perform the reset if a rep is actually staged.
+    // If not staged, we return the current state unchanged.
+    if (!isRepStaged) {
+      return ExerciseStartedProof(this);
+    }
+
+    final resetState = ExerciseInProgressState._(
+      legChoice: legChoice,
+      deviceAddress: deviceAddress,
+      startTime: startTime,
+      reps: reps, // 🟢 Rep count stays exactly the same
+      isRepStaged: false, // 🟢 Flag is reset to false
+    );
+
+    return ExerciseStartedProof(resetState);
+  }
+
+  /// COMMIT: The user (or logic) triggers the increment.
+  /// This only succeeds if isRepStaged is true.
+  ExerciseStartedProof incrementRep() {
+    // 🛡️ Logic Guard: If no rep is staged, return 'this' unchanged (or throw)
+    if (!isRepStaged) {
+      return ExerciseStartedProof(this);
+    }
+
+    final nextState = ExerciseInProgressState._(
+      legChoice: legChoice,
+      deviceAddress: deviceAddress,
+      startTime: startTime,
+      reps: reps.increment(), // 🟢 Increment the actual ValueObject
+      isRepStaged: false, // 🟢 Reset staging to false for the next rep
+    );
+    return ExerciseStartedProof(nextState);
+  }
+
+  /// Optional: Invalidate the staging if the user breaks form
+  ExerciseStartedProof invalidateStaging() {
+    final resetState = ExerciseInProgressState._(
+      legChoice: legChoice,
+      deviceAddress: deviceAddress,
+      startTime: startTime,
+      reps: reps,
+      isRepStaged: false,
+    );
+    return ExerciseStartedProof(resetState);
+  }
+
+  // --- PERSISTENCE & OTHER ---
+
   static ExerciseInProgressState fromPersistence(
     LegChoice leg,
     BLEDeviceAddress device,
     DateTime start,
     RepCount count,
+    bool staged, // Added to persistence
     TrackingStateCertificate cert,
   ) {
     return ExerciseInProgressState._(
@@ -51,30 +119,15 @@ class ExerciseInProgressState {
       deviceAddress: device,
       startTime: start,
       reps: count,
+      isRepStaged: staged,
     );
   }
 
   FeedbackStartedProof transitionToFeedback() {
-    // We pass 'this' (the current session) into the PartialFeedbackState
-    // to preserve the lineage of the workout data.
     final cert = PartialFeedbackStateCertificateManager.issueForSessionEnd(
       this,
     );
     return PartialFeedbackState.create(this, cert);
-  }
-
-  // --- TRANSITIONS ---
-
-  /// Evolution: Increment the rep count.
-  /// Internal calls use the private constructor to maintain the chain.
-  ExerciseStartedProof incrementRep(RepConfirmedProof proof) {
-    final nextState = ExerciseInProgressState._(
-      legChoice: legChoice,
-      deviceAddress: deviceAddress,
-      startTime: startTime,
-      reps: reps.increment(),
-    );
-    return ExerciseStartedProof(nextState);
   }
 
   TrackingAbortedProof abort() {

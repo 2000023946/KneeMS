@@ -14,7 +14,7 @@ class ExerciseRecord {
       'total_reps': model.totalReps.value,
       'start_time': model.startTime.toIso8601String(),
       'end_time': model.endTime.toIso8601String(),
-      'star_rating': model.rating?.value,
+      'star_rating': model.rating.value,
       'comments': model.comments,
       'duration_seconds': model.totalDuration.inSeconds,
     });

@@ -24,5 +24,5 @@ class TrackingDeletedPersistenceProof extends PersistenceProof {
 class TrackingHydrationProof extends PersistenceProof {
   final ExerciseInProgressState state;
 
-  TrackingHydrationProof(this.state) : super();
+  TrackingHydrationProof(this.state);
 }

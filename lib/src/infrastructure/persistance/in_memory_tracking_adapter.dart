@@ -16,9 +16,9 @@ class InMemoryTrackingAdapter extends ITrackingPersistencePolicy {
   ) async {
     // Extract the raw value from the Domain State
     final newCount = domainProof.state.reps.value;
-
     // Commit to the "Database"
     _store.updateRepCount(newCount);
+    _store.putIsRepStaged(domainProof.state.isRepStaged);
 
     int? currentCount = _store.getActiveRepCount();
     currentCount ??= 0;
@@ -38,6 +38,7 @@ class InMemoryTrackingAdapter extends ITrackingPersistencePolicy {
       BLEDeviceAddress(_store.getSetupDevice() ?? "UNKNOWN"),
       DateTime.now(), // Simplified for this mock
       RepCount(count),
+      _store.getIsRepStaged(),
       getTrackingStateCertificate(),
     );
 
@@ -52,7 +53,7 @@ class InMemoryTrackingAdapter extends ITrackingPersistencePolicy {
     final finalCount = abortProof.abortedState.reps.value;
 
     // Wipe the active tracking keys
-    _store.clearTracking();
+    _store.wipeAll();
 
     return TrackingDeletedPersistenceProof(
       sessionSummary: "Session aborted at $finalCount reps.",

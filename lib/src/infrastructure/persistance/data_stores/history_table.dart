@@ -12,6 +12,7 @@ class ExerciseHistoryStore {
 
   /// Pushes a new record into the vault.
   void commit(ExerciseRecord record) {
+    print('commint ${record.toMap()}');
     _history.add(record);
     print(
       '📂 HistoryStore: Record committed. Total entries: ${_history.length}',

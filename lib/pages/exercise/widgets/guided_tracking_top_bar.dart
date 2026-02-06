@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mobile/src/app/app_api.dart';
 
 class GuidedTrackingTopBar extends StatelessWidget {
   const GuidedTrackingTopBar({super.key});
@@ -11,7 +12,10 @@ class GuidedTrackingTopBar extends StatelessWidget {
         children: [
           IconButton(
             icon: const Icon(Icons.close, color: Colors.white54),
-            onPressed: () => Navigator.pop(context),
+            onPressed: () async {
+              await AppApi().abortExercise();
+              Navigator.pop(context);
+            },
           ),
           const Expanded(
             child: Center(

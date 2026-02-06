@@ -26,9 +26,7 @@ class TopSection extends StatelessWidget {
                     text:
                         "Do your knee extensions today to keep your streak alive.",
                   ),
-                  StartExerciseButton(
-                    destinationPage: const ExerciseSelectionPage(),
-                  ),
+                  StartExerciseButton(destinationPage: ExerciseSelectionPage()),
                 ],
               ),
             ),

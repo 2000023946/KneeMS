@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class AppNavigator {
   /// Replaces the long Navigator.push block with a simple call
-  static void push(BuildContext context, Widget targetPage) {
+  static Future<void> push(BuildContext context, Widget targetPage) async {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => targetPage),

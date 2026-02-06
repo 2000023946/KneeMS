@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
-
 import '../states/connectionStates.dart';
 
 class ConnectButton extends StatelessWidget {
   final GadgetUIState uiState;
-  final VoidCallback onPressed;
+  // 🟢 Changed to nullable so the button can be disabled
+  final VoidCallback? onPressed;
 
   const ConnectButton({
     super.key,
     required this.uiState,
-    required this.onPressed,
+    this.onPressed, // 🟢 Removed 'required' if you want it to default to null
   });
 
   @override
@@ -18,6 +18,7 @@ class ConnectButton extends StatelessWidget {
       width: double.infinity,
       height: 50,
       child: ElevatedButton.icon(
+        // Flutter automatically disables the button if onPressed is null
         onPressed: onPressed,
         icon: uiState.icon,
         label: Text(
@@ -30,6 +31,8 @@ class ConnectButton extends StatelessWidget {
         ),
         style: ElevatedButton.styleFrom(
           backgroundColor: uiState.color,
+          // 🟢 Optional: Add a disabled color so it looks right when locked
+          disabledBackgroundColor: uiState.color.withOpacity(0.5),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),

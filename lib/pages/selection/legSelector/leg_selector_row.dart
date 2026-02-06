@@ -26,13 +26,13 @@ class LegSelectorRow extends StatelessWidget {
               children: [
                 LegSelectorCard(
                   side: 'L',
-                  isSelected: selectedLeg == 'L',
+                  isSelected: selectedLeg == 'Left',
                   onTap: () => onChanged('L'),
                 ),
                 const SizedBox(width: 15),
                 LegSelectorCard(
                   side: 'R',
-                  isSelected: selectedLeg == 'R',
+                  isSelected: selectedLeg == 'Right',
                   onTap: () => onChanged('R'),
                 ),
               ],

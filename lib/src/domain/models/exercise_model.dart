@@ -11,7 +11,7 @@ class ExerciseModel {
   final RepCount totalReps;
   final DateTime startTime;
   final DateTime endTime;
-  final StarRating? rating;
+  final StarRating rating;
   final String? comments;
 
   ExerciseModel._({
@@ -48,7 +48,7 @@ class ExerciseModel {
     required RepCount reps,
     required DateTime start,
     required DateTime end,
-    required StarRating? rating,
+    required StarRating rating,
     required String? comments,
     required ExerciseModelCertificate cert, // Certificate required
   }) {

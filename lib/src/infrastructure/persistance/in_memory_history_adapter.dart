@@ -41,7 +41,6 @@ class InMemoryHistoryAdapter implements IHistoryPersistencePolicy {
     // 3. Map the raw data back into rich ExerciseModel objects
     final List<ExerciseModel> domainModels = records.map((record) {
       final data = record.toMap();
-
       return ExerciseModel.fromPersistence(
         leg: LegChoice(data['leg_choice']),
         device: BLEDeviceAddress(data['device_address']),
@@ -49,9 +48,7 @@ class InMemoryHistoryAdapter implements IHistoryPersistencePolicy {
         start: DateTime.parse(data['start_time']),
         end: DateTime.parse(data['end_time']),
         // Rating is nullable in history if the user skipped it
-        rating: data['star_rating'] != null
-            ? StarRating(data['star_rating'])
-            : null,
+        rating: StarRating(data['star_rating']),
         comments: data['comments'],
         cert: cert,
       );

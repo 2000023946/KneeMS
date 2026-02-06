@@ -9,7 +9,6 @@ class GetWorkoutHistoryUseCase {
   Future<FetchHistoryResultDTO> execute() async {
     try {
       final historyProof = await _historyPersistence.fetchAllHistory();
-
       // Flatten the models into a UI-friendly list of maps
       final flattened = historyProof.history
           .map(
@@ -17,7 +16,7 @@ class GetWorkoutHistoryUseCase {
               'reps': m.totalReps.value,
               'leg': m.legChoice.toString(),
               'date': m.startTime.toIso8601String(),
-              'stars': m.rating?.value ?? 0,
+              'stars': m.rating.value,
               'comments': m.comments ?? "",
             },
           )

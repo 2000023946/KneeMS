@@ -48,9 +48,6 @@ class StartExerciseUseCase {
       exerciseState.state,
     );
 
-    // Once tracking is confirmed live, we issue the "Death Certificate" for setup.
-    await _setupPersistence.clearSetup();
-
     return startProof;
   }
 }

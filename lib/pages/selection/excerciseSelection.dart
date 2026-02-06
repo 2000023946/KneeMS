@@ -1,53 +1,68 @@
 import 'package:flutter/material.dart';
-import 'package:mobile/logic/active_session_provider.dart';
+import 'package:mobile/src/app/app_api.dart';
 import 'package:mobile/pages/exercise/guided_tracking_page.dart';
 import 'package:mobile/pages/navbar/navbararrow.dart';
 import 'package:mobile/pages/selection/components/start_round_button.dart';
-import 'package:mobile/pages/selection/gadgetConnection/states/connectionStates.dart';
 import 'package:mobile/pages/selection/components/selection_form.dart';
+import 'package:mobile/pages/selection/gadgetConnection/states/connectionStates.dart';
 import 'package:mobile/utils/app_navigator.dart';
-import 'package:provider/provider.dart';
 
-class ExerciseSelectionPage extends StatefulWidget {
+class ExerciseSelectionPage extends StatelessWidget {
   const ExerciseSelectionPage({super.key});
 
   @override
-  State<ExerciseSelectionPage> createState() => _ExerciseSelectionPageState();
-}
-
-class _ExerciseSelectionPageState extends State<ExerciseSelectionPage> {
-  String selectedLeg = '';
-  ConnectState gadgetState = ConnectState.idle;
-
-  bool get canStartRound =>
-      selectedLeg != '' && gadgetState == ConnectState.connected;
-
-  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: const KneeNavBarBack(title: 'Setup Exercise'),
-      body: Stack(
-        children: [
-          // 1. Setup Form Component
-          SelectionSetupForm(
-            selectedLeg: selectedLeg,
-            onLegChanged: (leg) => setState(() => selectedLeg = leg),
-            onGadgetStateChanged: (state) =>
-                setState(() => gadgetState = state),
-          ),
+    final api = AppApi();
 
-          // 2. Action Button Component
-          StartRoundButton(
-            isEnabled: canStartRound,
-            onPressed: () {
-              // Save the exercise choice to the scratchpad
-              context.read<ActiveSessionProvider>().startSession(
-                "Right Leg Extension",
-              );
-              AppNavigator.push(context, const GuidedTrackingPage());
-            },
-          ),
-        ],
+    return Scaffold(
+      // 🟢 Background color removed (defaults to Theme)
+      appBar: const KneeNavBarBack(title: 'Setup Exercise'),
+      body: StreamBuilder<Map<String, dynamic>>(
+        stream: api.stateStream,
+        builder: (context, snapshot) {
+          final data = snapshot.data ?? {};
+          final String selectedLeg = data['leg'] ?? '';
+          final bool isConnected = data['is_connected'] ?? false;
+          final bool isConnecting = data['is_connecting'] ?? false;
+          final bool isStarting = data['is_starting_exercise'] ?? false;
+
+          final ConnectState status = isConnected
+              ? ConnectState.connected
+              : (isConnecting ? ConnectState.connecting : ConnectState.idle);
+
+          final bool canStartRound =
+              selectedLeg.isNotEmpty && isConnected && !isStarting;
+
+          return SafeArea(
+            child: Stack(
+              children: [
+                // 🟢 Padding removed: content is flush to edges
+                SelectionSetupForm(
+                  selectedLeg: selectedLeg,
+                  gadgetStatus: status,
+                  onLegChanged: (leg) => api.chooseLeg(leg),
+                  onConnectRequested: () => api.connectBluetooth("DEVICE_ID"),
+                ),
+
+                StartRoundButton(
+                  isEnabled: canStartRound,
+                  onPressed: isStarting
+                      ? null
+                      : () async {
+                          final result = await api.startExercise();
+
+                          if (result['success']) {
+                            AppNavigator.push(
+                              context,
+                              const GuidedTrackingPage(),
+                            );
+                          }
+                        },
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }

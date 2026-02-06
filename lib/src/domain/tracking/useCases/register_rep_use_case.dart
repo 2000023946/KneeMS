@@ -1,42 +1,42 @@
-import 'package:mobile/src/domain/tracking/policies/i_ble_rep_tracking_policy.dart';
-import 'package:mobile/src/domain/tracking/policies/i_tracking_persistence_policy.dart';
-import 'package:mobile/src/domain/tracking/proofs/tracking_persistence_proofs.dart';
-import 'register_rep_result_dto.dart';
+import 'package:mobile/src/domain/tracking/useCases/register_rep_result_dto.dart';
+
+import '../policies/i_tracking_persistence_policy.dart';
+import '../proofs/tracking_state_proofs.dart';
 
 class RegisterRepUseCase {
-  final IBLERepTrackingPolicy _trackingPolicy;
   final ITrackingPersistencePolicy _persistence;
 
-  RegisterRepUseCase(this._trackingPolicy, this._persistence);
+  RegisterRepUseCase(this._persistence);
 
-  /// The Gatekeeper: Handles error boundaries and DTO mapping.
+  /// The final 'Commit' step: Increments the count and resets the staging flag.
   Future<RegisterRepResultDTO> execute() async {
     try {
-      // We return both the new count and the persistence witness
-      final (newCount, saveProof) = await _performRepRegistration();
-      return RegisterRepResultDTO.success(newCount, saveProof);
+      // 1. FETCH: Pull the current session from the persistence layer
+      final hydration = await _persistence.getSavedProgress();
+      final currentState = hydration.state;
+
+      // 2. DOMAIN LOGIC: Call the logic guard we built in ExerciseInProgressState
+      // This will either increment/reset-flag OR return the state unchanged if !isRepStaged
+      final ExerciseStartedProof nextProof = currentState.incrementRep();
+
+      // 3. VALIDATE: If the state didn't change, the increment was blocked by the guard
+      if (nextProof.state == currentState) {
+        return RegisterRepResultDTO.failure(
+          "No rep was staged by the hardware hold.",
+        );
+      }
+
+      // 4. PERSIST: Save the updated count and the 'false' staging flag to disk
+      final saveReceipt = await _persistence.saveActiveTracking(nextProof);
+
+      // 5. DTO: Return the success result for the UI/API
+      return RegisterRepResultDTO.success(
+        nextProof.state.reps.value, // The actual integer count
+        saveReceipt,
+      );
     } catch (e) {
+      // Handle database errors or null state errors
       return RegisterRepResultDTO.failure(e.toString());
     }
-  }
-
-  /// The Logic: Orchestrates Sensor Verification and State Persistence.
-  Future<(int, TrackingSavedPersistenceProof)> _performRepRegistration() async {
-    // 1. Hydrate: Get the active session (State + History)
-    final hydration = await _persistence.getSavedProgress();
-
-    // 2. Sensor Policy: Await the specific 'Rep' event from the BLE hardware.
-    // The policy ensures the 4-second hold or specific motion was met.
-    final sensorWitness = await _trackingPolicy.trackReps().first;
-
-    // 3. State Evolution: Evolve the state and issue a Domain Proof.
-    // We use the incrementRep() method we built in ExerciseInProgressState.
-    final domainProof = hydration.state.incrementRep(sensorWitness);
-
-    // 4. Persistence: Commit the new state (with the +1 rep) to disk.
-    final persistenceProof = await _persistence.saveActiveTracking(domainProof);
-
-    // Return the new raw count and the persistence receipt
-    return (domainProof.state.reps.value, persistenceProof);
   }
 }

@@ -52,6 +52,7 @@ class InMemoryFeedbackAdapter extends IFeedbackPersistencePolicy {
       BLEDeviceAddress(deviceRaw),
       DateTime.now(),
       RepCount(repsRaw),
+      _store.getIsRepStaged(),
       getExerciseCertificate(),
     );
   }

@@ -36,6 +36,16 @@ class SessionDataStore {
     _table['feedback_comments'] = comments;
   }
 
+  void putIsRepStaged(bool isStaged) {
+    _table['is_rep_staged'] = isStaged;
+  }
+
+  bool hasActiveBleAddress() {
+    final address = getSetupDevice();
+    return address != null && address.isNotEmpty;
+  }
+
+  bool getIsRepStaged() => _table['is_rep_staged'] as bool? ?? false;
   int? getFeedbackStars() => _table['feedback_stars'] as int?;
   String? getFeedbackComments() => _table['feedback_comments'] as String?;
 
@@ -50,6 +60,7 @@ class SessionDataStore {
   /// Clears active tracking keys specifically
   void clearTracking() {
     _table.remove('active_rep_count');
+    _table.remove('is_rep_staged'); // 🧹 Keep it clean!
   }
 
   /// NEW: Clears feedback specific keys

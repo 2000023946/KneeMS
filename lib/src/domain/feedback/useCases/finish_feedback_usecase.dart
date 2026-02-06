@@ -2,6 +2,7 @@ import 'package:mobile/src/domain/feedback/policies/i_feedback_persistence_polic
 import 'package:mobile/src/domain/feedback/useCases/finish_feedback_dto.dart';
 import 'package:mobile/src/domain/models/exercise_model.dart';
 import 'package:mobile/src/domain/models/i_exercise_history_policy.dart';
+import 'package:mobile/src/infrastructure/persistance/data_stores/setup_table.dart';
 
 class FinalizeWorkoutUseCase {
   final IFeedbackPersistencePolicy _feedbackPersistence;
@@ -26,11 +27,7 @@ class FinalizeWorkoutUseCase {
 
       // 4. PERSIST: Save the model to the long-term History Store.
       await _historyPersistence.saveExercise(modelProof);
-
-      // 5. CLEANUP: Wipe the temporary feedback and tracking data.
-      // This ensures the app returns to the 'Setup' phase on next launch.
-      await _feedbackPersistence.clearFeedback();
-
+      SessionDataStore().wipeAll();
       // 6. REPORT: Return the flattened DTO back to the UI.
       return SaveFeedbackResultDTO.success(modelProof.model);
     } catch (e) {

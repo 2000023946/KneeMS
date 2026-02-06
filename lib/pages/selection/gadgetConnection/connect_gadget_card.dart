@@ -8,35 +8,21 @@ import 'package:mobile/pages/selection/gadgetConnection/states/connectionStates.
 import 'package:mobile/pages/selection/gadgetConnection/states/gadget_registry.dart'
     show GadgetRegistry;
 
-class ConnectGadgetCard extends StatefulWidget {
-  final void Function(ConnectState)? onStateChanged;
+class ConnectGadgetCard extends StatelessWidget {
+  // Now we take the status as a parameter from the Stream
+  final ConnectState status;
+  final VoidCallback onConnectRequested;
 
-  const ConnectGadgetCard({super.key, this.onStateChanged});
-
-  @override
-  State<ConnectGadgetCard> createState() => _ConnectGadgetCardState();
-}
-
-class _ConnectGadgetCardState extends State<ConnectGadgetCard> {
-  ConnectState _currentKey = ConnectState.idle;
-
-  void _onButtonPressed() {
-    if (_currentKey == ConnectState.idle) {
-      _updateState(ConnectState.connecting);
-      Future.delayed(const Duration(seconds: 3), () {
-        if (mounted) _updateState(ConnectState.connected);
-      });
-    }
-  }
-
-  void _updateState(ConnectState newState) {
-    setState(() => _currentKey = newState);
-    widget.onStateChanged?.call(newState);
-  }
+  const ConnectGadgetCard({
+    super.key,
+    required this.status,
+    required this.onConnectRequested,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final uiState = GadgetRegistry.states[_currentKey]!;
+    // UI state is derived solely from the passed-in status
+    final uiState = GadgetRegistry.states[status]!;
 
     return Flexible(
       flex: 2,
@@ -59,7 +45,13 @@ class _ConnectGadgetCardState extends State<ConnectGadgetCard> {
                       'Make sure your KneeMS device is turned on and strapped comfortably.',
                 ),
                 const SizedBox(height: 20),
-                ConnectButton(uiState: uiState, onPressed: _onButtonPressed),
+                // Button just triggers the callback
+                ConnectButton(
+                  uiState: uiState,
+                  onPressed: status == ConnectState.idle
+                      ? onConnectRequested
+                      : null,
+                ),
               ],
             ),
           ),
