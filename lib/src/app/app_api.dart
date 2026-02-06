@@ -14,7 +14,7 @@ class AppApi {
   AppApi._internal();
 
   /// Pushes the current state from persistence/domain to the stream
-  void _refresh() {
+  void _refresh() async {
     _stateController.add({
       'is_connected': _app.isBleConnected,
       'reps': _app.currentReps ?? 0,
@@ -22,7 +22,9 @@ class AppApi {
       'is_rep_staged': _app.isRepStaged,
       'stars': _app.getStars ?? 0,
       'comments': _app.getComments,
-      'history': getHistory(),
+      'history': await getHistory(),
+      'is_connecting': false,
+      'is_starting_exercise': false,
     });
   }
 
