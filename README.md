@@ -76,30 +76,6 @@ and the pure domain model.
 
 ## 🛠️ Minimal Example
 
-```dart
-class FullInitialSelectionState {
-  FullInitialSelectionState._({
-    required this.selectedLeg,
-    required this.connectedDevice,
-  });
-
-  final LegChoice selectedLeg;
-  final BLEDeviceAddress connectedDevice;
-
-  static FullInitialStateCreatedProof fromComponents(
-    LegChoice leg,
-    BLEDeviceAddress address,
-    InitialStateCertificate cert,
-  ) {
-    return FullInitialStateCreatedProof(
-      FullInitialSelectionState._(
-        selectedLeg: leg,
-        connectedDevice: address,
-      ),
-    );
-  }
-}```
-
 flowchart TD
     %% States (Nodes)
     S0[StartingState]
