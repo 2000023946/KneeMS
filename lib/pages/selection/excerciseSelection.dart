@@ -15,7 +15,6 @@ class ExerciseSelectionPage extends StatelessWidget {
     final api = AppApi();
 
     return Scaffold(
-      // 🟢 Background color removed (defaults to Theme)
       appBar: const KneeNavBarBack(title: 'Setup Exercise'),
       body: StreamBuilder<Map<String, dynamic>>(
         stream: api.stateStream,
@@ -25,6 +24,9 @@ class ExerciseSelectionPage extends StatelessWidget {
           final bool isConnected = data['is_connected'] ?? false;
           final bool isConnecting = data['is_connecting'] ?? false;
           final bool isStarting = data['is_starting_exercise'] ?? false;
+
+          // 🔥 NEW: Disable everything when ANY operation is in progress
+          final bool isAnyOperationInProgress = isConnecting || isStarting;
 
           final ConnectState status = isConnected
               ? ConnectState.connected
@@ -36,19 +38,29 @@ class ExerciseSelectionPage extends StatelessWidget {
           return SafeArea(
             child: Stack(
               children: [
-                // 🟢 Padding removed: content is flush to edges
-                SelectionSetupForm(
-                  selectedLeg: selectedLeg,
-                  gadgetStatus: status,
-                  onLegChanged: (leg) => api.chooseLeg(leg),
-                  onConnectRequested: () => api.connectBluetooth("DEVICE_ID"),
+                // 🔥 Wrap form in AbsorbPointer to disable all interactions
+                AbsorbPointer(
+                  absorbing:
+                      isAnyOperationInProgress, // Blocks all touches when true
+                  child: Opacity(
+                    opacity: isAnyOperationInProgress
+                        ? 0.5
+                        : 1.0, // Visual feedback
+                    child: SelectionSetupForm(
+                      selectedLeg: selectedLeg,
+                      gadgetStatus: status,
+                      onLegChanged: (leg) => api.chooseLeg(leg),
+                      onConnectRequested: () =>
+                          api.connectBluetooth("DEVICE_ID"),
+                    ),
+                  ),
                 ),
 
                 StartRoundButton(
                   isEnabled: canStartRound,
-                  onPressed: isStarting
-                      ? null
-                      : () async {
+                  isLoading: isStarting,
+                  onPressed: canStartRound
+                      ? () async {
                           final result = await api.startExercise();
 
                           if (result['success']) {
@@ -56,8 +68,19 @@ class ExerciseSelectionPage extends StatelessWidget {
                               context,
                               const GuidedTrackingPage(),
                             );
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  result['message'] ??
+                                      'Failed to start exercise',
+                                ),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
                           }
-                        },
+                        }
+                      : null,
                 ),
               ],
             ),

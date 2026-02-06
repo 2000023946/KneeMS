@@ -26,7 +26,7 @@ class BottomSection extends StatelessWidget {
 
               final response = snapshot.data ?? {'success': false, 'data': []};
               final List rawData = response['data'] ?? [];
-              print(rawData.take(2));
+              print('data ${rawData.take(2)}');
               if (rawData.isEmpty) {
                 return const Center(
                   child: Text(
