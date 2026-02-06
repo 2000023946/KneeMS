@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mobile/src/app/app_api.dart';
 
 class FeedbackTextInput extends StatelessWidget {
   final TextEditingController controller;
@@ -15,6 +16,9 @@ class FeedbackTextInput extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return TextField(
+      onChanged: (value) async {
+        await AppApi().updateComments(value);
+      },
       controller: controller,
       maxLines: maxLines,
       decoration: InputDecoration(

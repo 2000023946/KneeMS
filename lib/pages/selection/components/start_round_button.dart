@@ -8,38 +8,56 @@ class StartRoundButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 1. Logic: Determine if we are waiting for hardware to initialize
+    final bool isLoading = onPressed == null && isEnabled == false;
+
+    // 2. Logic: Determine the background color
+    // If it's ready to be clicked, we use the bright Sky Blue.
+    // If it's disabled or loading, we dim it down.
+    final Color buttonColor = isEnabled
+        ? const Color.fromARGB(255, 0, 105, 150) // 🔵 Bright Blue (Ready)
+        : const Color(
+            0xFF38BDF8,
+          ).withOpacity(0.4); // 🌫️ Dimmed Blue (Not Ready/Loading)
+
     return Positioned(
-      left: 0,
-      right: 0,
-      bottom: 0,
-      height: 90,
-      child: Container(
-        color: Colors.white,
-        child: Center(
-          child: SizedBox(
-            width: MediaQuery.of(context).size.width * 0.9,
-            height: 60,
-            child: TextButton(
-              // If isEnabled is true, use the passed function, else null to disable
-              onPressed: isEnabled ? onPressed : null,
-              style: TextButton.styleFrom(
-                backgroundColor: isEnabled
-                    ? const Color(0xFF2563EB) // Blue when active
-                    : const Color(0xFFE5E7EB), // Grey when disabled
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-              ),
-              child: Text(
-                'Start Round',
-                style: TextStyle(
-                  color: isEnabled ? Colors.white : const Color(0xFF9CA3AF),
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
+      bottom: 24,
+      left: 24,
+      right: 24,
+      child: SizedBox(
+        height: 56,
+        width: double.infinity,
+        child: ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: buttonColor,
+            // We use the same color for the disabled state to avoid sudden gray flashes
+            disabledBackgroundColor: buttonColor,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
             ),
+            elevation: isEnabled ? 4 : 0, // Add a little shadow when it's ready
           ),
+          onPressed: onPressed,
+          child: isLoading
+              ? const SizedBox(
+                  height: 24,
+                  width: 24,
+                  child: CircularProgressIndicator(
+                    color: Colors.white,
+                    strokeWidth: 2.5,
+                  ),
+                )
+              : Text(
+                  "START ROUND",
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    // White text only pops if the button is ready or loading
+                    color: isEnabled || isLoading
+                        ? Colors.white
+                        : Colors.white.withOpacity(0.6),
+                  ),
+                ),
         ),
       ),
     );

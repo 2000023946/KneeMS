@@ -1,7 +1,7 @@
+// lib/pages/homes/sections/bottom/bottomSection.dart
+
 import 'package:flutter/material.dart';
-import 'package:mobile/pages/homes/sections/bottom/components/no_recents.dart';
-import 'package:provider/provider.dart';
-import 'package:mobile/logic/history_provider.dart';
+import 'package:mobile/src/app/app_api.dart';
 import 'components/bottom_section_layout.dart';
 import 'components/header.dart';
 import 'components/recent_sessions_list.dart';
@@ -11,23 +11,35 @@ class BottomSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 1. Listen to the data source
-    final sessions = Provider.of<HistoryProvider>(context).sessions;
-
-    // 2. Logic to get the last 2 sessions (newest first)
-    final recentSessions = sessions.reversed.take(2).toList();
-
     return BottomSectionLayout(
       children: [
         const Header(),
         const SizedBox(height: 10),
         Flexible(
           flex: 4,
-          child: recentSessions.isEmpty
-              ? const RecentEmptyState() // Extracted Component
-              : RecentSessionsList(
-                  sessions: recentSessions,
-                ), // Extracted Component
+          child: FutureBuilder<Map<String, dynamic>>(
+            future: AppApi().getHistory(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+
+              final response = snapshot.data ?? {'success': false, 'data': []};
+              final List rawData = response['data'] ?? [];
+              print(rawData.take(2));
+              if (rawData.isEmpty) {
+                return const Center(
+                  child: Text(
+                    "No sessions yet",
+                    style: TextStyle(color: Colors.white24),
+                  ),
+                );
+              }
+
+              // 🟢 Just pass the raw list of maps
+              return RecentSessionsList(rawSessions: rawData.take(2).toList());
+            },
+          ),
         ),
       ],
     );
